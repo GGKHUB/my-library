@@ -5,6 +5,9 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
 
 (() => {
   const STORAGE_KEY = "my-library.books.v1";
+  const IDLE_TIMEOUT_MS = 2 * 60 * 1000;
+  const ACTIVITY_STORAGE_KEY = "my-library.last-activity.v1";
+  const ACTIVITY_EVENTS = ["pointerdown", "pointermove", "keydown", "touchstart", "wheel"];
   const LOCATIONS = ["Home", "Work", "Loaned", "Unknown"];
   const PALETTES = [
     ["#6c9c73", "#e5eee5"], ["#c97960", "#f3e7e0"], ["#c4a46b", "#f4efdf"],
@@ -30,6 +33,9 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
   let auth = null;
   let stopBookListener = null;
   let authPersistenceReady = Promise.resolve();
+  let idleLogoutTimer = null;
+  let lastActivityAt = Date.now();
+  let lastActivitySharedAt = 0;
   const firebaseReady = firebaseConfigReady();
 
   function loadBooks() {
@@ -185,6 +191,62 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
     }
   }
 
+  function stopIdleLogoutTimer() {
+    window.clearTimeout(idleLogoutTimer);
+    idleLogoutTimer = null;
+  }
+
+  function scheduleIdleLogout() {
+    stopIdleLogoutTimer();
+    if (!currentUser || !auth) return;
+    const remaining = IDLE_TIMEOUT_MS - (Date.now() - lastActivityAt);
+    if (remaining <= 0) {
+      void signOutForInactivity();
+      return;
+    }
+    idleLogoutTimer = window.setTimeout(signOutForInactivity, remaining);
+  }
+
+  async function signOutForInactivity() {
+    if (!currentUser || !auth) return;
+    if (Date.now() - lastActivityAt < IDLE_TIMEOUT_MS) {
+      scheduleIdleLogout();
+      return;
+    }
+    try {
+      await signOut(auth);
+      showToast("Signed out after 2 minutes of inactivity.");
+    } catch (error) {
+      console.error(error);
+      showToast("Automatic sign-out didn’t complete. Please sign out manually.");
+    }
+  }
+
+  function recordActivity() {
+    if (!currentUser) return;
+    lastActivityAt = Date.now();
+    scheduleIdleLogout();
+    if (lastActivityAt - lastActivitySharedAt < 5000) return;
+    lastActivitySharedAt = lastActivityAt;
+    try { localStorage.setItem(ACTIVITY_STORAGE_KEY, String(lastActivityAt)); } catch { /* Storage may be disabled. */ }
+  }
+
+  function handleSharedActivity(event) {
+    if (!currentUser || event.key !== ACTIVITY_STORAGE_KEY) return;
+    const activityAt = Number(event.newValue);
+    if (!Number.isFinite(activityAt) || activityAt <= lastActivityAt) return;
+    lastActivityAt = activityAt;
+    scheduleIdleLogout();
+  }
+
+  for (const eventName of ACTIVITY_EVENTS) {
+    window.addEventListener(eventName, recordActivity, { passive: true });
+  }
+  window.addEventListener("storage", handleSharedActivity);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && currentUser) scheduleIdleLogout();
+  });
+
   function openForm(book = null) {
     if (firebaseReady && !currentUser) return showToast("Sign in with Google to manage your cloud library.");
     els.form.reset();
@@ -272,10 +334,13 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
     currentUser = user;
     updateAuthUI(user);
     if (!user) {
+      stopIdleLogoutTimer();
       books = firebaseReady ? [] : localBooks;
       render();
       return;
     }
+    lastActivityAt = Date.now();
+    scheduleIdleLogout();
     const ref = cloudCollection();
     let firstSnapshot = true;
     stopBookListener = onSnapshot(ref, snapshot => {
