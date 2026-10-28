@@ -26,6 +26,8 @@ The web config is public by design; it is not a database password. Firestore rul
 
 On first Google sign-in, the app offers to upload any books saved in this browser's old local storage. It keeps that local copy as a backup. Once synced, your catalog loads from Firestore and is available on other devices after you sign in.
 
+For privacy, the app automatically signs you out after two minutes without activity. Activity in another open My Library tab resets the timer too.
+
 ## Your book data
 
 Use **Export CSV** for a portable backup and **Import CSV** to restore or add rows.
