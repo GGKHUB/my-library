@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+import { browserLocalPersistence, getAuth, GoogleAuthProvider, onAuthStateChanged, setPersistence, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 import { collection, deleteDoc, doc, getFirestore, onSnapshot, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
 
@@ -29,6 +29,7 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
   let firestore = null;
   let auth = null;
   let stopBookListener = null;
+  let authPersistenceReady = Promise.resolve();
   const firebaseReady = firebaseConfigReady();
 
   function loadBooks() {
@@ -481,6 +482,7 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
   els.signIn.addEventListener("click", async () => {
     if (!auth) return showToast("Cloud sign-in isn’t configured yet.");
     try {
+      await authPersistenceReady;
       await signInWithPopup(auth, new GoogleAuthProvider());
     } catch (error) {
       console.error(error);
@@ -505,6 +507,10 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
       const firebaseApp = initializeApp(firebaseConfig);
       auth = getAuth(firebaseApp);
       firestore = getFirestore(firebaseApp);
+      authPersistenceReady = setPersistence(auth, browserLocalPersistence).catch(error => {
+        console.error(error);
+        showToast("This browser couldn’t remember your sign-in. Check its privacy or storage settings.");
+      });
       onAuthStateChanged(auth, attachCloudLibrary);
     } catch (error) {
       console.error(error);
