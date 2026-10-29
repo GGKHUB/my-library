@@ -610,7 +610,9 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
     if (!auth) return showToast("Cloud sign-in isn’t configured yet.");
     try {
       await authPersistenceReady;
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: "select_account" });
+      await signInWithPopup(auth, provider);
     } catch (error) {
       console.error(error);
       showToast(error.code === "auth/unauthorized-domain" ? "Add ggkhub.github.io to Firebase’s authorized domains." : "Google sign-in didn’t complete. Please try again.");
