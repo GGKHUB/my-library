@@ -5,6 +5,7 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
 
 (() => {
   const STORAGE_KEY = "my-library.books.v1";
+  const THEME_KEY = "my-library.theme.v1";
   const IDLE_TIMEOUT_MS = 2 * 60 * 1000;
   const ACTIVITY_STORAGE_KEY = "my-library.last-activity.v1";
   const ACTIVITY_EVENTS = ["pointerdown", "pointermove", "keydown", "touchstart", "wheel"];
@@ -20,8 +21,27 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
     search: $("#search-input"), sort: $("#sort-select"), heading: $("#books-heading"), headingCount: $("#heading-count"),
     dialog: $("#book-dialog"), form: $("#book-form"), details: $("#details-dialog"), csvFile: $("#csv-file"),
     activeFilter: $("#active-filter"), toast: $("#toast"), signIn: $("#sign-in-button"), signOut: $("#sign-out-button"),
-    authUser: $("#auth-user"), storageText: $("#storage-text")
+    authUser: $("#auth-user"), storageText: $("#storage-text"), bookBelt: $("#book-belt")
   };
+  const themeButton = $("#theme-toggle");
+  const themeMeta = $("meta[name='theme-color']");
+
+  function applyTheme(theme) {
+    const nextTheme = theme === "light" ? "light" : "dark";
+    document.documentElement.dataset.theme = nextTheme;
+    themeButton.textContent = nextTheme === "dark" ? "☼" : "☾";
+    themeButton.setAttribute("aria-label", `Switch to ${nextTheme === "dark" ? "light" : "dark"} theme`);
+    themeButton.title = `Switch to ${nextTheme === "dark" ? "light" : "dark"} theme`;
+    themeButton.setAttribute("aria-pressed", String(nextTheme === "dark"));
+    if (themeMeta) themeMeta.content = nextTheme === "dark" ? "#0d151b" : "#f7f5ef";
+    try { localStorage.setItem(THEME_KEY, nextTheme); } catch { /* Theme still works for this page. */ }
+  }
+
+  try {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    if (savedTheme === "light" || savedTheme === "dark") document.documentElement.dataset.theme = savedTheme;
+  } catch { /* Use the default dark theme. */ }
+  applyTheme(document.documentElement.dataset.theme);
 
   let books = [];
   let localBooks = loadBooks();
@@ -112,6 +132,7 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
     els.heading.childNodes[0].textContent = `${label} `;
     els.headingCount.textContent = visible.length;
     renderActiveFilter();
+    renderBookBelt(visible);
     els.grid.innerHTML = visible.map((book, index) => cardMarkup(book, index)).join("");
     els.grid.hidden = visible.length === 0;
     els.empty.hidden = visible.length !== 0;
@@ -127,6 +148,30 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
       $("#empty-add").hidden = true;
     }
     $$(".nav-item").forEach(button => button.classList.toggle("is-active", button.dataset.location === selectedLocation));
+  }
+
+  function renderBookBelt(visible) {
+    const section = $("#book-belt-section");
+    const controls = $("#book-belt-controls");
+    const previousScroll = els.bookBelt.scrollLeft;
+    section.hidden = visible.length === 0;
+    controls.hidden = visible.length < 2;
+    $("#book-belt-count").textContent = `${visible.length} ${visible.length === 1 ? "title" : "titles"}`;
+    els.bookBelt.innerHTML = visible.map((book, index) => {
+      const [accent] = PALETTES[index % PALETTES.length];
+      const author = book.author ? escapeHTML(book.author) : "Author not listed";
+      return `<button class="belt-book" type="button" data-book-id="${escapeHTML(book.id)}" style="--belt-accent:${accent}" aria-label="Open ${escapeHTML(book.title)} by ${author}">
+        <span class="belt-book-spine" aria-hidden="true"><span>✳</span></span>
+        <span class="belt-book-copy"><span class="belt-book-title">${escapeHTML(book.title)}</span><span class="belt-book-author">${author}</span></span>
+        <span class="belt-book-arrow" aria-hidden="true">↗</span>
+      </button>`;
+    }).join("");
+    if (visible.length) {
+      requestAnimationFrame(() => {
+        els.bookBelt.scrollLeft = Math.min(previousScroll, els.bookBelt.scrollWidth - els.bookBelt.clientWidth);
+        controls.hidden = visible.length < 2 || els.bookBelt.scrollWidth <= els.bookBelt.clientWidth + 2;
+      });
+    }
   }
 
   function cardMarkup(book, index) {
@@ -530,6 +575,23 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
       openDetails(card.dataset.bookId);
     }
   });
+  els.bookBelt.addEventListener("click", event => {
+    const item = event.target.closest(".belt-book");
+    if (item) openDetails(item.dataset.bookId);
+  });
+  els.bookBelt.addEventListener("keydown", event => {
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      els.bookBelt.scrollBy({ left: event.key === "ArrowRight" ? 260 : -260, behavior: "smooth" });
+    }
+  });
+  const scrollBookBelt = direction => {
+    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    els.bookBelt.scrollBy({ left: direction * Math.max(240, els.bookBelt.clientWidth * 0.72), behavior });
+  };
+  $("#belt-prev").addEventListener("click", () => scrollBookBelt(-1));
+  $("#belt-next").addEventListener("click", () => scrollBookBelt(1));
+  themeButton.addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
   $("#edit-book").addEventListener("click", () => {
     const book = books.find(item => item.id === activeBookId);
     if (!book) return;
