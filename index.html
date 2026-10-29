@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f7f5ef" />
+    <meta name="theme-color" content="#0d151b" />
     <meta name="description" content="A quiet, private place to keep track of the books in your library." />
     <title>My Library</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%231e4b3b'/%3E%3Cpath d='M11 10h12a6 6 0 0 1 6 6v14H17a6 6 0 0 0-6 2z' fill='none' stroke='%23f7f5ef' stroke-width='2.5' stroke-linejoin='round'/%3E%3Cpath d='M11 10v22m18-16h-8m8 6h-8' fill='none' stroke='%23f7f5ef' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
@@ -47,7 +47,7 @@
       <main id="top" class="main-content">
         <header class="topbar">
           <div class="breadcrumb"><span>MY COLLECTION</span><span class="breadcrumb-sep">/</span><strong id="breadcrumb-current">All books</strong></div>
-          <div class="topbar-right"><span class="today-label" id="today-label"></span><div class="auth-controls"><span id="auth-user" hidden></span><button class="auth-button" id="sign-in-button" type="button">Sign in with Google</button><button class="auth-button auth-button-light" id="sign-out-button" type="button" hidden>Sign out</button></div></div>
+          <div class="topbar-right"><span class="today-label" id="today-label"></span><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch to light theme">☼</button><div class="auth-controls"><span id="auth-user" hidden></span><button class="auth-button" id="sign-in-button" type="button">Sign in with Google</button><button class="auth-button auth-button-light" id="sign-out-button" type="button" hidden>Sign out</button></div></div>
         </header>
 
         <section class="welcome-row">
@@ -64,6 +64,18 @@
           <article class="stat-card"><div class="stat-topline"><span>AT HOME</span><span class="stat-color home-color"></span></div><div class="stat-value" id="stat-home">0</div><div class="stat-foot">within reach</div></article>
           <article class="stat-card"><div class="stat-topline"><span>AT WORK</span><span class="stat-color work-color"></span></div><div class="stat-value" id="stat-work">0</div><div class="stat-foot">on another shelf</div></article>
           <article class="stat-card"><div class="stat-topline"><span>LOANED OUT</span><span class="stat-color loan-color"></span></div><div class="stat-value" id="stat-loaned">0</div><div class="stat-foot">being enjoyed elsewhere</div></article>
+        </section>
+
+        <section class="book-belt-section" id="book-belt-section" aria-labelledby="book-belt-title" hidden>
+          <div class="book-belt-header">
+            <div><div class="section-kicker">ON YOUR SHELF</div><h2 id="book-belt-title">The book belt <span class="belt-count" id="book-belt-count">0 titles</span></h2></div>
+            <div class="book-belt-controls" id="book-belt-controls" hidden>
+              <span class="book-belt-hint">Swipe or use arrows</span>
+              <button class="belt-arrow" id="belt-prev" type="button" aria-label="Show previous books">‹</button>
+              <button class="belt-arrow" id="belt-next" type="button" aria-label="Show next books">›</button>
+            </div>
+          </div>
+          <div class="book-belt" id="book-belt" role="region" aria-label="Your books, horizontally scrollable" tabindex="0"></div>
         </section>
 
         <section class="books-section" aria-labelledby="books-heading">
