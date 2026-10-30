@@ -7,23 +7,10 @@
     <meta name="description" content="A quiet, private place to keep track of the books in your library." />
     <title>My Library</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%231e4b3b'/%3E%3Cpath d='M11 10h12a6 6 0 0 1 6 6v14H17a6 6 0 0 0-6 2z' fill='none' stroke='%23f7f5ef' stroke-width='2.5' stroke-linejoin='round'/%3E%3Cpath d='M11 10v22m18-16h-8m8 6h-8' fill='none' stroke='%23f7f5ef' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261030-library-room" />
-    <script type="module" src="app.js?v=20261030-library-room"></script>
+    <link rel="stylesheet" href="styles.css?v=20261030-photo-library" />
+    <script type="module" src="app.js?v=20261030-photo-library"></script>
   </head>
   <body>
-    <div class="library-room" id="library-room" aria-hidden="true">
-      <div class="room-perspective" id="room-perspective">
-        <div class="room-back-wall">
-          <div class="room-window"><span></span><span></span><i></i></div>
-          <div class="room-shelf shelf-left"><div class="room-books"></div><div class="room-books books-second"></div><div class="room-books books-third"></div></div>
-          <div class="room-shelf shelf-right"><div class="room-books books-second"></div><div class="room-books"></div><div class="room-books books-third"></div></div>
-          <div class="room-art"><span>✳</span></div>
-        </div>
-        <div class="room-side-wall room-left-wall"></div><div class="room-side-wall room-right-wall"></div>
-        <div class="room-floor"><span class="floor-rug"></span></div>
-      </div>
-      <div class="room-vignette"></div>
-    </div>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Library navigation">
         <a class="brand" href="#top" aria-label="My Library home">
@@ -78,6 +65,19 @@
           <article class="stat-card"><div class="stat-topline"><span>AT HOME</span><span class="stat-color home-color"></span></div><div class="stat-value" id="stat-home">0</div><div class="stat-foot">within reach</div></article>
           <article class="stat-card"><div class="stat-topline"><span>AT WORK</span><span class="stat-color work-color"></span></div><div class="stat-value" id="stat-work">0</div><div class="stat-foot">on another shelf</div></article>
           <article class="stat-card"><div class="stat-topline"><span>LOANED OUT</span><span class="stat-color loan-color"></span></div><div class="stat-value" id="stat-loaned">0</div><div class="stat-foot">being enjoyed elsewhere</div></article>
+        </section>
+
+        <section class="room-explorer-section" id="room-explorer" aria-labelledby="room-explorer-title">
+          <div class="room-explorer-heading">
+            <div><div class="section-kicker">A PLACE FOR YOUR STORIES</div><h2 id="room-explorer-title">Step into the library</h2></div>
+            <span class="room-explorer-instruction"><span aria-hidden="true">↔</span> Drag the photo to look around</span>
+          </div>
+          <div class="library-photo" id="library-photo" tabindex="0" role="region" aria-label="Panoramic library photo. Drag left or right to look around.">
+            <img class="library-photo-image" src="assets/library-room.jpg" alt="A warm, wood-paneled library with floor-to-ceiling bookshelves, a rolling ladder, reading table, and tall windows" draggable="false" />
+            <div class="library-photo-shade"></div>
+            <span class="photo-caption">YOUR OWN QUIET CORNER</span>
+            <button class="photo-reset" id="photo-reset" type="button" aria-label="Reset library view" title="Reset view">⟲</button>
+          </div>
         </section>
 
         <section class="book-belt-section" id="book-belt-section" aria-labelledby="book-belt-title" hidden>
