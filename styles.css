@@ -157,3 +157,23 @@
 @media(max-width:760px){.room-back-wall{left:2%;right:2%;top:14%;height:62%}.room-shelf{width:39%;}.shelf-left{left:2%}.shelf-right{right:2%}.room-window{right:8%;width:20%}.room-art{left:42%;width:16%}.room-floor{top:76%}}
 @media(prefers-reduced-motion:reduce){.room-perspective{transition:none}}
 
+/* Photo panorama appears below the collection overview */
+.main-content{cursor:auto}
+.room-explorer-section{margin-top:38px}
+.room-explorer-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
+.room-explorer-heading h2{font-family:var(--serif);font-size:25px;line-height:1.2;font-weight:500;letter-spacing:-.45px;margin:6px 0 0}
+.room-explorer-instruction{font-size:10px;color:#9caf9e;white-space:nowrap}
+.room-explorer-instruction span{font-size:16px;vertical-align:-1px;margin-right:6px;color:#c5d19b}
+.library-photo{--photo-pan-x:0px;--photo-pan-y:0px;position:relative;height:clamp(250px,31vw,410px);overflow:hidden;border:1px solid rgba(206,181,125,.22);border-radius:14px;background:#211a14;box-shadow:0 22px 56px rgba(0,0,0,.3);cursor:grab;touch-action:pan-y;isolation:isolate}
+.library-photo:focus-visible{outline:3px solid #86a778;outline-offset:3px}
+.library-photo-image{position:absolute;left:-20%;top:0;width:140%;height:100%;max-width:none;object-fit:cover;object-position:center;transform:translate3d(var(--photo-pan-x),var(--photo-pan-y),0) scale(1.025);transition:transform .18s ease-out;user-select:none;-webkit-user-drag:none}
+.library-photo.is-dragging{cursor:grabbing}
+.library-photo.is-dragging .library-photo-image{transition:none}
+.library-photo-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,9,7,.34),transparent 38%,transparent 76%,rgba(10,9,7,.18)),linear-gradient(0deg,rgba(10,9,7,.48),transparent 38%);pointer-events:none}
+.photo-caption{position:absolute;left:20px;bottom:17px;color:rgba(255,246,223,.87);font-size:9px;font-weight:700;letter-spacing:1.7px;text-shadow:0 2px 7px rgba(0,0,0,.7);pointer-events:none}
+.photo-reset{position:absolute;right:15px;bottom:13px;width:34px;height:34px;border:1px solid rgba(255,255,255,.42);border-radius:50%;background:rgba(17,17,14,.4);color:white;font-size:20px;line-height:1;backdrop-filter:blur(5px);transition:background .18s,transform .18s}
+.photo-reset:hover{background:rgba(17,17,14,.75);transform:rotate(-35deg)}
+:root[data-theme="light"] .library-photo{box-shadow:0 20px 44px rgba(33,28,21,.16)}
+@media(max-width:760px){.room-explorer-section{margin-top:29px}.room-explorer-heading{align-items:flex-start;flex-direction:column;gap:6px}.room-explorer-heading h2{font-size:22px}.room-explorer-instruction{font-size:9px}.library-photo{height:clamp(230px,58vw,340px);border-radius:11px}.photo-caption{left:13px;bottom:13px;font-size:8px}.photo-reset{right:11px;bottom:10px}}
+@media(prefers-reduced-motion:reduce){.library-photo-image{transition:none}}
+
