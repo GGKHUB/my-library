@@ -629,6 +629,36 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
     }
   });
 
+  // Drag empty areas of the page to look around the illustrated library.
+  const room = $("#room-perspective");
+  let roomYaw = -8;
+  let roomPitch = 2;
+  let roomDrag = null;
+  const paintRoomView = () => room.style.setProperty("--room-yaw", `${roomYaw}deg`),
+    paintRoomPitch = () => room.style.setProperty("--room-pitch", `${roomPitch}deg`);
+  paintRoomView();
+  paintRoomPitch();
+  document.addEventListener("pointerdown", event => {
+    if (event.button !== 0 || event.target.closest("button,a,input,select,textarea,dialog,.book-card,.belt-book,label")) return;
+    roomDrag = { x: event.clientX, y: event.clientY, yaw: roomYaw, pitch: roomPitch };
+    document.body.classList.add("room-is-dragging");
+  });
+  window.addEventListener("pointermove", event => {
+    if (!roomDrag) return;
+    roomYaw = Math.max(-32, Math.min(32, roomDrag.yaw + (event.clientX - roomDrag.x) * 0.11));
+    roomPitch = Math.max(-5, Math.min(9, roomDrag.pitch - (event.clientY - roomDrag.y) * 0.055));
+    paintRoomView();
+    paintRoomPitch();
+  });
+  window.addEventListener("pointerup", () => {
+    roomDrag = null;
+    document.body.classList.remove("room-is-dragging");
+  });
+  window.addEventListener("pointercancel", () => {
+    roomDrag = null;
+    document.body.classList.remove("room-is-dragging");
+  });
+
   $("#today-label").textContent = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }).format(new Date());
 
   if (firebaseReady) {
