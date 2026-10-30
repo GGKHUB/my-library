@@ -629,27 +629,110 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
     }
   });
 
-  // Pan the library panorama only inside its own section, leaving page scroll alone.
+  // Render a 360-degree equirectangular panorama directly in WebGL; no viewer library required.
   const libraryPhoto = $("#library-photo");
-  let photoPanX = 0;
-  let photoPanY = 0;
+  const panoramaCanvas = $("#panorama-canvas");
+  const panoramaImage = libraryPhoto.querySelector(".library-photo-image");
+  let panoramaGl = null;
+  let panoramaTexture = null;
+  let panoramaProgram = null;
+  let panoramaYaw = 0;
+  let panoramaPitch = 0;
   let photoDrag = null;
-  const paintPhotoPan = () => {
-    libraryPhoto.style.setProperty("--photo-pan-x", `${photoPanX}px`);
-    libraryPhoto.style.setProperty("--photo-pan-y", `${photoPanY}px`);
+  const paintPanorama = () => {
+    if (!panoramaGl || !panoramaProgram) return;
+    const ratio = window.devicePixelRatio || 1;
+    const width = Math.max(1, Math.round(libraryPhoto.clientWidth * ratio));
+    const height = Math.max(1, Math.round(libraryPhoto.clientHeight * ratio));
+    if (panoramaCanvas.width !== width || panoramaCanvas.height !== height) {
+      panoramaCanvas.width = width;
+      panoramaCanvas.height = height;
+    }
+    panoramaGl.viewport(0, 0, width, height);
+    panoramaGl.useProgram(panoramaProgram);
+    panoramaGl.uniform2f(panoramaGl.getUniformLocation(panoramaProgram, "u_resolution"), width, height);
+    panoramaGl.uniform2f(panoramaGl.getUniformLocation(panoramaProgram, "u_angles"), panoramaYaw, panoramaPitch);
+    panoramaGl.activeTexture(panoramaGl.TEXTURE0);
+    panoramaGl.bindTexture(panoramaGl.TEXTURE_2D, panoramaTexture);
+    panoramaGl.drawArrays(panoramaGl.TRIANGLE_STRIP, 0, 4);
   };
+  const setupPanorama = () => {
+    if (!panoramaImage.complete || !panoramaImage.naturalWidth || panoramaGl) return;
+    const gl = panoramaCanvas.getContext("webgl", { alpha: false, antialias: true });
+    if (!gl) return;
+    const vertexSource = `attribute vec2 a_position; void main(){ gl_Position=vec4(a_position,0.0,1.0); }`;
+    const fragmentSource = `
+      precision mediump float;
+      uniform sampler2D u_panorama;
+      uniform vec2 u_resolution;
+      uniform vec2 u_angles;
+      const float PI=3.141592653589793;
+      void main(){
+        vec2 screen=(gl_FragCoord.xy/u_resolution)*2.0-1.0;
+        screen.x*=u_resolution.x/u_resolution.y;
+        vec3 ray=normalize(vec3(screen,1.32));
+        float cp=cos(u_angles.y), sp=sin(u_angles.y);
+        ray=vec3(ray.x,ray.y*cp-ray.z*sp,ray.y*sp+ray.z*cp);
+        float cy=cos(u_angles.x), sy=sin(u_angles.x);
+        ray=vec3(ray.x*cy+ray.z*sy,ray.y,-ray.x*sy+ray.z*cy);
+        float longitude=atan(ray.x,ray.z);
+        float latitude=asin(clamp(ray.y,-1.0,1.0));
+        vec2 uv=vec2(fract(0.5+longitude/(2.0*PI)),0.5-latitude/PI);
+        gl_FragColor=texture2D(u_panorama,uv);
+      }`;
+    const compile = (type, source) => {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) { gl.deleteShader(shader); return null; }
+      return shader;
+    };
+    const vertex = compile(gl.VERTEX_SHADER, vertexSource);
+    const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+    if (!vertex || !fragment) return;
+    const program = gl.createProgram();
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return;
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    gl.useProgram(program);
+    const position = gl.getAttribLocation(program, "a_position");
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, panoramaImage);
+    gl.uniform1i(gl.getUniformLocation(program, "u_panorama"), 0);
+    panoramaGl = gl;
+    panoramaTexture = texture;
+    panoramaProgram = program;
+    libraryPhoto.classList.add("is-ready");
+    paintPanorama();
+  };
+  if (panoramaImage.complete && panoramaImage.naturalWidth) setupPanorama();
+  else panoramaImage.addEventListener("load", setupPanorama, { once: true });
+  if ("ResizeObserver" in window) new ResizeObserver(paintPanorama).observe(libraryPhoto);
+  else window.addEventListener("resize", paintPanorama);
+
   libraryPhoto.addEventListener("pointerdown", event => {
     if (event.button !== 0 || event.target.closest("button")) return;
-    photoDrag = { x: event.clientX, y: event.clientY, panX: photoPanX, panY: photoPanY };
+    photoDrag = { x: event.clientX, y: event.clientY, yaw: panoramaYaw, pitch: panoramaPitch };
     libraryPhoto.setPointerCapture(event.pointerId);
     libraryPhoto.classList.add("is-dragging");
   });
   libraryPhoto.addEventListener("pointermove", event => {
     if (!photoDrag) return;
-    const maxX = Math.max(0, (libraryPhoto.clientWidth * 1.4 - libraryPhoto.clientWidth) / 2);
-    photoPanX = Math.max(-maxX, Math.min(maxX, photoDrag.panX + event.clientX - photoDrag.x));
-    photoPanY = Math.max(-24, Math.min(24, photoDrag.panY + (event.clientY - photoDrag.y) * 0.16));
-    paintPhotoPan();
+    panoramaYaw = photoDrag.yaw - ((event.clientX - photoDrag.x) / Math.max(1, libraryPhoto.clientWidth)) * Math.PI * 2;
+    panoramaPitch = Math.max(-1.25, Math.min(1.25, photoDrag.pitch + ((event.clientY - photoDrag.y) / Math.max(1, libraryPhoto.clientHeight)) * Math.PI));
+    paintPanorama();
   });
   const endPhotoDrag = event => {
     if (!photoDrag) return;
@@ -659,10 +742,20 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
   };
   libraryPhoto.addEventListener("pointerup", endPhotoDrag);
   libraryPhoto.addEventListener("pointercancel", endPhotoDrag);
+  libraryPhoto.addEventListener("keydown", event => {
+    const step = Math.PI / 18;
+    if (event.key === "ArrowLeft") panoramaYaw -= step;
+    else if (event.key === "ArrowRight") panoramaYaw += step;
+    else if (event.key === "ArrowUp") panoramaPitch = Math.max(-1.25, panoramaPitch - step);
+    else if (event.key === "ArrowDown") panoramaPitch = Math.min(1.25, panoramaPitch + step);
+    else return;
+    event.preventDefault();
+    paintPanorama();
+  });
   $("#photo-reset").addEventListener("click", () => {
-    photoPanX = 0;
-    photoPanY = 0;
-    paintPhotoPan();
+    panoramaYaw = 0;
+    panoramaPitch = 0;
+    paintPanorama();
   });
 
   $("#today-label").textContent = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }).format(new Date());
