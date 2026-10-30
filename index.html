@@ -7,10 +7,23 @@
     <meta name="description" content="A quiet, private place to keep track of the books in your library." />
     <title>My Library</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%231e4b3b'/%3E%3Cpath d='M11 10h12a6 6 0 0 1 6 6v14H17a6 6 0 0 0-6 2z' fill='none' stroke='%23f7f5ef' stroke-width='2.5' stroke-linejoin='round'/%3E%3Cpath d='M11 10v22m18-16h-8m8 6h-8' fill='none' stroke='%23f7f5ef' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css" />
-    <script type="module" src="app.js?v=20261029-account-chooser"></script>
+    <link rel="stylesheet" href="styles.css?v=20261030-library-room" />
+    <script type="module" src="app.js?v=20261030-library-room"></script>
   </head>
   <body>
+    <div class="library-room" id="library-room" aria-hidden="true">
+      <div class="room-perspective" id="room-perspective">
+        <div class="room-back-wall">
+          <div class="room-window"><span></span><span></span><i></i></div>
+          <div class="room-shelf shelf-left"><div class="room-books"></div><div class="room-books books-second"></div><div class="room-books books-third"></div></div>
+          <div class="room-shelf shelf-right"><div class="room-books books-second"></div><div class="room-books"></div><div class="room-books books-third"></div></div>
+          <div class="room-art"><span>✳</span></div>
+        </div>
+        <div class="room-side-wall room-left-wall"></div><div class="room-side-wall room-right-wall"></div>
+        <div class="room-floor"><span class="floor-rug"></span></div>
+      </div>
+      <div class="room-vignette"></div>
+    </div>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Library navigation">
         <a class="brand" href="#top" aria-label="My Library home">
@@ -55,6 +68,7 @@
             <div class="eyebrow"><span class="eyebrow-line"></span> THE PERSONAL CATALOG</div>
             <h1>Your shelves,<br /><em>beautifully</em> in order.</h1>
             <p class="welcome-copy">Keep the books you love close, and always know where to find them.</p>
+            <p class="room-drag-hint"><span aria-hidden="true">↔</span> Drag the room background to look around</p>
           </div>
           <button class="primary-button add-book-button" id="add-book" type="button"><span class="plus-icon" aria-hidden="true">+</span> Add a book</button>
         </section>
