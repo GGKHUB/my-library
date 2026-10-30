@@ -130,3 +130,30 @@
 
 .theme-toggle{width:34px;height:34px;border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:50%;font-size:18px;line-height:1;display:grid;place-items:center;transition:transform .2s,border-color .2s,background .2s}.theme-toggle:hover{transform:rotate(18deg)}
 
+/* Interactive, CSS-drawn library room behind the catalog */
+.library-room{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;perspective:1100px;background:radial-gradient(ellipse at 49% 42%,#25352f 0,#121c20 58%,#0a1116 100%)}
+.room-perspective{--room-yaw:-8deg;--room-pitch:2deg;position:absolute;inset:-12%;transform-style:preserve-3d;transform:rotateX(var(--room-pitch)) rotateY(var(--room-yaw)) scale(1.08);transition:transform .12s ease-out}
+.room-back-wall{position:absolute;left:17%;right:17%;top:9%;height:68%;transform:translateZ(-90px);background:linear-gradient(180deg,#28382f,#1c2a28 72%,#172321);border:1px solid rgba(200,175,120,.12);box-shadow:inset 0 0 100px rgba(0,0,0,.5)}
+.room-back-wall::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 49.8%,rgba(200,175,120,.08) 50%,transparent 50.2%),linear-gradient(180deg,rgba(255,240,195,.04),transparent 42%)}
+.room-side-wall{position:absolute;top:9%;height:68%;width:20%;background:linear-gradient(90deg,#1b2927,#26362e);border:1px solid rgba(200,175,120,.1)}
+.room-left-wall{left:-1%;transform-origin:right center;transform:rotateY(-58deg) translateZ(-70px)}
+.room-right-wall{right:-1%;transform-origin:left center;transform:rotateY(58deg) translateZ(-70px)}
+.room-floor{position:absolute;top:74%;left:8%;right:8%;height:42%;transform:rotateX(72deg);transform-origin:top center;background:repeating-linear-gradient(90deg,rgba(190,153,93,.10) 0 1px,transparent 1px 94px),linear-gradient(180deg,#332a20,#161b1b);box-shadow:inset 0 18px 50px rgba(0,0,0,.42)}
+.floor-rug{position:absolute;left:28%;top:14%;width:44%;height:72%;border:2px solid rgba(192,157,103,.23);border-radius:50%;background:radial-gradient(ellipse,rgba(91,65,43,.52),rgba(80,57,38,.2) 62%,transparent 64%)}
+.room-shelf{position:absolute;top:16%;bottom:8%;width:31%;display:flex;flex-direction:column;justify-content:space-around;padding:3% 3% 2%;background:linear-gradient(90deg,#3c2c20,#60472e 8%,#4a3524 13%,#39291f 92%,#241e19);border:5px solid #5c422c;box-shadow:0 0 0 2px rgba(16,14,12,.5),inset 0 0 15px #171613,9px 12px 25px rgba(0,0,0,.3)}
+.shelf-left{left:8%}.shelf-right{right:8%}
+.room-books{height:25%;position:relative;border-bottom:8px solid #745433;background:repeating-linear-gradient(90deg,#9b583c 0 12px,#c18d54 12px 22px,#31564b 22px 37px,#425e75 37px 49px,#baaa79 49px 56px,#283c35 56px 70px,#80563b 70px 83px);box-shadow:0 5px 8px rgba(0,0,0,.4);clip-path:polygon(0 7%,8% 7%,8% 0,18% 0,18% 8%,29% 8%,29% 0,41% 0,41% 7%,52% 7%,52% 0,62% 0,62% 9%,73% 9%,73% 0,85% 0,85% 7%,100% 7%,100% 100%,0 100%)}
+.books-second{background:repeating-linear-gradient(90deg,#486557 0 14px,#b19056 14px 22px,#78483a 22px 37px,#3d596e 37px 52px,#d0b879 52px 61px,#385041 61px 77px,#944e39 77px 93px)}
+.books-third{background:repeating-linear-gradient(90deg,#bc8a4d 0 9px,#3b5945 9px 25px,#a75c43 25px 39px,#354f62 39px 53px,#d1b974 53px 65px,#684b37 65px 78px)}
+.room-window{position:absolute;right:12%;top:12%;width:16%;height:32%;border:9px solid #60472e;background:linear-gradient(145deg,#78908a,#b8a77b 55%,#617f73);box-shadow:0 0 55px rgba(201,173,110,.17),inset 0 0 0 3px #31271e}
+.room-window span:first-child{position:absolute;left:48%;height:100%;width:5px;background:#60472e}.room-window span:nth-child(2){position:absolute;top:48%;width:100%;height:5px;background:#60472e}.room-window i{position:absolute;inset:0;background:linear-gradient(120deg,transparent 25%,rgba(255,245,210,.22) 26%,transparent 35%)}
+.room-art{position:absolute;left:47%;top:17%;width:10%;height:23%;display:grid;place-items:center;border:8px solid #5a4029;background:linear-gradient(145deg,#3c5646,#263c37);box-shadow:0 8px 20px rgba(0,0,0,.35);color:#cbb27a;font-size:clamp(18px,3vw,44px)}
+.room-vignette{position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,14,17,.46),transparent 22%,transparent 78%,rgba(8,14,17,.5)),linear-gradient(180deg,rgba(8,14,17,.2),transparent 32%,rgba(8,14,17,.6));}
+.app-shell{position:relative;z-index:1}.sidebar{background:rgba(16,26,33,.86)!important;backdrop-filter:blur(9px)}
+.main-content{cursor:grab}.room-is-dragging,.room-is-dragging *{cursor:grabbing!important;user-select:none!important}
+.room-drag-hint{margin:13px 0 0;color:#9caf9e;font-size:10px;letter-spacing:.15px;opacity:.84}.room-drag-hint span{display:inline-grid;place-items:center;width:21px;height:21px;margin-right:6px;border:1px solid rgba(184,203,177,.32);border-radius:50%;color:#c5d19b;font-size:14px;vertical-align:middle}
+:root[data-theme="light"] .library-room{filter:brightness(1.25) saturate(.82)}
+:root[data-theme="light"] .sidebar{background:rgba(247,245,239,.88)!important}
+@media(max-width:760px){.room-back-wall{left:2%;right:2%;top:14%;height:62%}.room-shelf{width:39%;}.shelf-left{left:2%}.shelf-right{right:2%}.room-window{right:8%;width:20%}.room-art{left:42%;width:16%}.room-floor{top:76%}}
+@media(prefers-reduced-motion:reduce){.room-perspective{transition:none}}
+
