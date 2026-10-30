@@ -629,34 +629,40 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
     }
   });
 
-  // Drag empty areas of the page to look around the illustrated library.
-  const room = $("#room-perspective");
-  let roomYaw = -8;
-  let roomPitch = 2;
-  let roomDrag = null;
-  const paintRoomView = () => room.style.setProperty("--room-yaw", `${roomYaw}deg`),
-    paintRoomPitch = () => room.style.setProperty("--room-pitch", `${roomPitch}deg`);
-  paintRoomView();
-  paintRoomPitch();
-  document.addEventListener("pointerdown", event => {
-    if (event.button !== 0 || event.target.closest("button,a,input,select,textarea,dialog,.book-card,.belt-book,label")) return;
-    roomDrag = { x: event.clientX, y: event.clientY, yaw: roomYaw, pitch: roomPitch };
-    document.body.classList.add("room-is-dragging");
+  // Pan the library panorama only inside its own section, leaving page scroll alone.
+  const libraryPhoto = $("#library-photo");
+  let photoPanX = 0;
+  let photoPanY = 0;
+  let photoDrag = null;
+  const paintPhotoPan = () => {
+    libraryPhoto.style.setProperty("--photo-pan-x", `${photoPanX}px`);
+    libraryPhoto.style.setProperty("--photo-pan-y", `${photoPanY}px`);
+  };
+  libraryPhoto.addEventListener("pointerdown", event => {
+    if (event.button !== 0 || event.target.closest("button")) return;
+    photoDrag = { x: event.clientX, y: event.clientY, panX: photoPanX, panY: photoPanY };
+    libraryPhoto.setPointerCapture(event.pointerId);
+    libraryPhoto.classList.add("is-dragging");
   });
-  window.addEventListener("pointermove", event => {
-    if (!roomDrag) return;
-    roomYaw = Math.max(-32, Math.min(32, roomDrag.yaw + (event.clientX - roomDrag.x) * 0.11));
-    roomPitch = Math.max(-5, Math.min(9, roomDrag.pitch - (event.clientY - roomDrag.y) * 0.055));
-    paintRoomView();
-    paintRoomPitch();
+  libraryPhoto.addEventListener("pointermove", event => {
+    if (!photoDrag) return;
+    const maxX = Math.max(0, (libraryPhoto.clientWidth * 1.4 - libraryPhoto.clientWidth) / 2);
+    photoPanX = Math.max(-maxX, Math.min(maxX, photoDrag.panX + event.clientX - photoDrag.x));
+    photoPanY = Math.max(-24, Math.min(24, photoDrag.panY + (event.clientY - photoDrag.y) * 0.16));
+    paintPhotoPan();
   });
-  window.addEventListener("pointerup", () => {
-    roomDrag = null;
-    document.body.classList.remove("room-is-dragging");
-  });
-  window.addEventListener("pointercancel", () => {
-    roomDrag = null;
-    document.body.classList.remove("room-is-dragging");
+  const endPhotoDrag = event => {
+    if (!photoDrag) return;
+    photoDrag = null;
+    libraryPhoto.classList.remove("is-dragging");
+    if (event?.pointerId !== undefined && libraryPhoto.hasPointerCapture(event.pointerId)) libraryPhoto.releasePointerCapture(event.pointerId);
+  };
+  libraryPhoto.addEventListener("pointerup", endPhotoDrag);
+  libraryPhoto.addEventListener("pointercancel", endPhotoDrag);
+  $("#photo-reset").addEventListener("click", () => {
+    photoPanX = 0;
+    photoPanY = 0;
+    paintPhotoPan();
   });
 
   $("#today-label").textContent = new Intl.DateTimeFormat(undefined, { weekday: "short", month: "short", day: "numeric" }).format(new Date());
