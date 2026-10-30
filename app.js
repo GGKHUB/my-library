@@ -677,7 +677,7 @@ import { firebaseConfig, firebaseConfigReady } from "./firebase-config.js";
         ray=vec3(ray.x*cy+ray.z*sy,ray.y,-ray.x*sy+ray.z*cy);
         float longitude=atan(ray.x,ray.z);
         float latitude=asin(clamp(ray.y,-1.0,1.0));
-        vec2 uv=vec2(fract(0.5+longitude/(2.0*PI)),0.5-latitude/PI);
+        vec2 uv=vec2(fract(0.5+longitude/(2.0*PI)),0.5+latitude/PI);
         gl_FragColor=texture2D(u_panorama,uv);
       }`;
     const compile = (type, source) => {
