@@ -7,8 +7,8 @@
     <meta name="description" content="A quiet, private place to keep track of the books in your library." />
     <title>My Library</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%231e4b3b'/%3E%3Cpath d='M11 10h12a6 6 0 0 1 6 6v14H17a6 6 0 0 0-6 2z' fill='none' stroke='%23f7f5ef' stroke-width='2.5' stroke-linejoin='round'/%3E%3Cpath d='M11 10v22m18-16h-8m8 6h-8' fill='none' stroke='%23f7f5ef' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
-    <link rel="stylesheet" href="styles.css?v=20261030-photo-library" />
-    <script type="module" src="app.js?v=20261030-photo-library"></script>
+    <link rel="stylesheet" href="styles.css?v=20261030-360-panorama" />
+    <script type="module" src="app.js?v=20261030-360-panorama"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -70,10 +70,11 @@
         <section class="room-explorer-section" id="room-explorer" aria-labelledby="room-explorer-title">
           <div class="room-explorer-heading">
             <div><div class="section-kicker">A PLACE FOR YOUR STORIES</div><h2 id="room-explorer-title">Step into the library</h2></div>
-            <span class="room-explorer-instruction"><span aria-hidden="true">↔</span> Drag the photo to look around</span>
+            <span class="room-explorer-instruction"><span aria-hidden="true">↔</span> Drag to turn 360° · drag up or down to tilt</span>
           </div>
-          <div class="library-photo" id="library-photo" tabindex="0" role="region" aria-label="Panoramic library photo. Drag left or right to look around.">
-            <img class="library-photo-image" src="assets/library-room.jpg" alt="A warm, wood-paneled library with floor-to-ceiling bookshelves, a rolling ladder, reading table, and tall windows" draggable="false" />
+          <div class="library-photo" id="library-photo" tabindex="0" role="region" aria-label="360-degree library panorama. Drag left or right to turn, and up or down to tilt. Use arrow keys to look around.">
+            <img class="library-photo-image" src="assets/library-room-360.jpg" alt="A warm wood-paneled library with bookshelves, reading chairs, and tall windows" draggable="false" />
+            <canvas class="panorama-canvas" id="panorama-canvas" aria-hidden="true"></canvas>
             <div class="library-photo-shade"></div>
             <span class="photo-caption">YOUR OWN QUIET CORNER</span>
             <button class="photo-reset" id="photo-reset" type="button" aria-label="Reset library view" title="Reset view">⟲</button>
